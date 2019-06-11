@@ -24,8 +24,6 @@ class QMS_Client:
         self.status.pack(side='left')
         frame3.pack()
 
-
-
     
     def is_valid_num(self, string_to_check):
         if not string_to_check:
