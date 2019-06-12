@@ -1,30 +1,38 @@
 import tkinter as tk
+# import socket
 
 
 class QMS_Client:
     def __init__(self, root):
-        frame1 = tk.Frame(root)
-        hint = tk.Label(frame1, text='请输入当前办理号码：')
+        frame_input = tk.Frame(root)
+        hint = tk.Label(frame_input, text='请输入当前办理号码：')
         hint.pack(side='top', padx=10, pady=10)
-        self.cur_nubmer = tk.Entry(frame1)
-        self.cur_nubmer.pack(side='top',padx=50,pady=10)
-        frame1.pack()
+        self.cur_nubmer = tk.Entry(frame_input)
+        self.cur_nubmer.pack(side='top', padx=50, pady=10)
+        frame_input.pack()
 
-        frame2 = tk.Frame(root)
-        miss = tk.Button(frame2, text='过号', fg='red', command=self.miss_number)
-        miss.pack(side='left',padx=10,pady=10)
-        start = tk.Button(frame2, text='开始办理', fg='black', command=self.start_number)
+        frame_buttons = tk.Frame(root)
+        miss = tk.Button(frame_buttons, text='过号',
+                         fg='red', command=self.miss_number)
+        miss.pack(side='left', padx=10, pady=10)
+        start = tk.Button(frame_buttons, text='开始办理',
+                          fg='black', command=self.start_number)
         start.pack(side='left', padx=10, pady=10)
-        done = tk.Button(frame2, text='完成', fg='green', command=self.finish_number)
-        done.pack(side='left',padx=10,pady=10)
-        frame2.pack()
+        done = tk.Button(frame_buttons, text='完成', fg='green',
+                         command=self.finish_number)
+        done.pack(side='left', padx=10, pady=10)
+        frame_buttons.pack()
 
-        frame3 = tk.Frame(root)
-        self.status = tk.Label(frame3, text='')
+        frame_status = tk.Frame(root)
+        self.status = tk.Label(frame_status, text='')
         self.status.pack(side='left')
-        frame3.pack()
+        frame_status.pack()
 
-    
+        # always on top
+        root.attributes('-topmost', 'true')
+
+        # root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
     def is_valid_num(self, string_to_check):
         if not string_to_check:
             return False
@@ -32,6 +40,7 @@ class QMS_Client:
             if c not in '0123456789':
                 return False
         return True
+
     def start_number(self):
         num = self.cur_nubmer.get().strip()
         if not self.is_valid_num(num):
@@ -58,6 +67,10 @@ class QMS_Client:
             return
         self.cur_nubmer.delete(0, tk.END)
         self.status['text'] = '{}号已完成！'.format(num)
+
+    # def on_closing(self):
+    #     pass
+
 
 root = tk.Tk()
 root.title('排号系统')
