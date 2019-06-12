@@ -1,5 +1,11 @@
 import tkinter as tk
-# import socket
+import socket
+import sys
+import settings
+
+HOST = settings.SERVER_HOST
+PORT = settings.SERVER_PORT
+CUR_WINDOW_NAME = settings.CLIENT_HOST[settings.WINDOW_IP]
 
 
 class QMS_Client:
@@ -33,6 +39,20 @@ class QMS_Client:
 
         # root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    def send_info(self, mode, num):
+        # mdoe: 'start', 'done', 'pause', 'miss'
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            # Connect to server and send data
+            info = ','.join([str(CUR_WINDOW_NAME), str(mode), str(num)])
+            sock.connect((HOST, PORT))
+            sock.sendall(bytes(info + "\n", "utf-8"))
+
+            # Receive data from the server and shut down
+            received = str(sock.recv(1024), "utf-8")
+
+            print("Sent:     {}".format(info))
+            print("Received: {}".format(received))
+
     def is_valid_num(self, string_to_check):
         if not string_to_check:
             return False
@@ -49,6 +69,7 @@ class QMS_Client:
             return
         # self.cur_nubmer.delete(0, tk.END)
         self.status['text'] = '正在为{}号办理业务...'.format(num)
+        self.send_info('start', 2)
 
     def miss_number(self):
         num = self.cur_nubmer.get().strip()

@@ -1,10 +1,17 @@
 import tkinter as tk
-# import socket
+import socketserver
+import threading
+
+import settings
+
+HOST = settings.SERVER_HOST
+PORT = settings.SERVER_PORT
 
 
 class QMS_Server:
     def __init__(self, root):
-        frame1 = tk.Frame(root)
+        self.root = root
+        frame1 = tk.Frame(self.root)
         self.w1 = tk.Label(frame1, text=self.gen_text(1, 1))
         self.w1.pack(side='top', padx=50, pady=5)
         self.w2 = tk.Label(frame1, text=self.gen_text(2, 2))
@@ -18,17 +25,29 @@ class QMS_Server:
         frame1.pack()
 
         # always on top
-        root.attributes('-topmost', 'true')
-
-        
-
+        self.root.attributes('-topmost', 'true')
 
         # self.s_sock = socket.socket()
         # host = socket.gethostname()
         # port = 1611
         # self.s_sock.bind((host, port))
 
-        # root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+        self.socket_server_thread = threading.Thread(target=self.start_server)
+        self.socket_server_thread.start()
+
+    def start_server(self):
+        # print('start_thread')
+        # Create the server, binding to localhost on port 9999
+        with socketserver.TCPServer((HOST, PORT), MyTCPHandler) as self.server:
+            # Activate the server; this will keep running until you
+            # interrupt the program with Ctrl-C
+            self.server.serve_forever()
+            # self.server.shutdown()
+        # print('end_thread')
+
+
 
     # def listen_sock(self):
     #     self.s_sock.listen(5)
@@ -45,9 +64,30 @@ class QMS_Server:
             text = '{}号窗口: 正在等待{}号...'.format(window_num, cur_num)
         return text
 
-    # def on_closing(self):
-    #     self.s_sock.shutdown()
-    #     # self.s_sock.close()
+    def on_closing(self):
+        # print(1)
+        self.server.shutdown()
+        # print(2)
+        self.socket_server_thread.join()
+        # print(3)
+        self.root.destroy()
+        
+        # pass
+        # self.s_sock.close()
+
+
+class MyTCPHandler(socketserver.StreamRequestHandler):
+
+    def handle(self):
+        # self.rfile is a file-like object created by the handler;
+        # we can now use e.g. readline() instead of raw recv() calls
+        self.data = self.rfile.readline().strip()
+        print("{} wrote:".format(self.client_address[0]))
+        print(str(self.data, encoding='utf-8'))
+        # Likewise, self.wfile is a file-like object used to write back
+        # to the client
+        self.wfile.write(self.data.upper())
+
 
 root = tk.Tk()
 root.title('办理进度')
