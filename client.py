@@ -8,7 +8,8 @@ HOST = settings.SERVER_HOST
 PORT = settings.SERVER_PORT
 CUR_WINDOW_NAME = settings.CLIENT_HOST[settings.WINDOW_IP]
 
-numbers = settings.NUMS
+# numbers = settings.NUMS
+
 
 class QMS_Client:
     def __init__(self, root):
@@ -27,7 +28,7 @@ class QMS_Client:
                           fg='black', command=self.click_start_number)
         start.pack(side='left', padx=10, pady=10)
         finish = tk.Button(frame_buttons, text='完成', fg='green',
-                         command=self.click_finish_number)
+                           command=self.click_finish_number)
         finish.pack(side='left', padx=10, pady=10)
         frame_buttons.pack()
 
@@ -63,9 +64,10 @@ class QMS_Client:
                 # if len(numbers) <= 1:
                 #     self.status['text'] = '暂无办理。'
                 # else:
-                if '|' in received:
-                    wait_num, numbers = received.split('|')
-                    numbers = numbers.split(',')
+                if received:
+                    # wait_num, numbers = received.split('|')
+                    # numbers = numbers.split(',')
+                    wait_num = received
                     self.cur_nubmer.insert(0, wait_num)
                     self.status['text'] = '正在等待{}号...'.format(wait_num)
                 else:
@@ -122,4 +124,3 @@ root = tk.Tk()
 root.title('排号系统')
 app = QMS_Client(root)
 root.mainloop()
-

@@ -3,10 +3,20 @@ import socketserver
 import threading
 from time import sleep
 
-import settings
+# import settings
+import configparser
 
-HOST = settings.SERVER_HOST
-PORT = settings.SERVER_PORT
+config = configparser.ConfigParser()
+config.read('Config.ini', encoding='utf-8')
+
+HOST = config['CONFIG']['server_host']
+PORT = int(config['CONFIG']['server_port'])
+ORDER = int(config['CONFIG']['local_order'])
+RANGE = config['CONFIG']['number_range'].split(',')
+# print(HOST)
+# HOST = settings.SERVER_HOST
+# print(HOST)
+# PORT = settings.SERVER_PORT
 
 
 class QMS_Server:
@@ -15,17 +25,17 @@ class QMS_Server:
     def __init__(self, root):
         self.root = root
         frame1 = tk.Frame(self.root)
-        self.w1 = tk.Label(frame1, text=self.gen_text(1))
+        self.w1 = tk.Label(frame1, text=self.gen_text(1))#, bg='red')
         self.w1.pack(side='top', pady=5)
-        self.w2 = tk.Label(frame1, text=self.gen_text(2))
-        self.w2.pack(side='top', pady=5)
+        self.w2 = tk.Label(frame1, text=self.gen_text(2))#, bg='green')
+        self.w2.pack(side='top', pady=5, after=self.w1)
         self.w3 = tk.Label(frame1, text=self.gen_text(3))
         self.w3.pack(side='top', pady=5)
         self.w4 = tk.Label(frame1, text=self.gen_text(4))
         self.w4.pack(side='top', pady=5)
         # self.w5 = tk.Label(frame1, text=self.gen_text(5))
         # self.w5.pack(side='top',pady=5)
-        frame1.pack(padx=50)
+        frame1.pack(padx=30, pady=10)
 
         # always on top
         self.root.attributes('-topmost', 'true')
@@ -62,9 +72,9 @@ class QMS_Server:
         if type == 'doing':
             text = '{}号窗口: 正在为{}号办理'.format(window_num, cur_num)
         elif type == 'waiting':
-            text = '{}号窗口: 正在等待{}号...'.format(window_num, cur_num)
+            text = '{}号窗口: 正在等待{}号'.format(window_num, cur_num)
         elif type == 'no_work':
-            text = '{}号窗口: 暂无办理。'.format(window_num)
+            text = '{}号窗口：暂无办理'.format(window_num)
         return text
 
     def on_closing(self):
@@ -92,27 +102,37 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
         print(recv_info)
         # Likewise, self.wfile is a file-like object used to write back
 
-        window_idx = settings.CLIENT_ORDER.index(self.client_address[0])
+        window_idx = ORDER
+        # window_idx = settings.CLIENT_ORDER.index(self.client_address[0])
+
+        # print(window_idx)
+
+
         mode, polished_info, win_num, customer_num = self.info_parser(
             recv_info)
         labels[window_idx]['text'] = polished_info
         if mode in ['miss', 'finish']:
             # print('here!')
             # sleep(.5)
-            if len(numbers) <= 1:
-                labels[window_idx]['text'] = '{}：暂无办理。'.format(win_num)
+            # if len(numbers) <= 1:
+            if not numbers:
+                labels[window_idx]['text'] = '{}：暂无办理'.format(win_num)
                 self.wfile.write(bytes('', 'utf-8'))
             else:
-                numbers.remove(int(customer_num))
-                next_num = numbers[0]
-                # next_num = numbers.pop(0)
-                labels[window_idx]['text'] = '{}：正在等待{}号办理...'.format(
+                if int(customer_num) in numbers:
+                    numbers.remove(int(customer_num))
+                # next_num = numbers[0]
+                next_num = numbers.pop(0)
+                labels[window_idx]['text'] = '{}：正在等待{}号办理'.format(
                     win_num, next_num)
-                print(numbers)
+                # print(numbers)
                 # to the client
-                byte_numbers = bytes(str(next_num) + '|' + ','.join([str(n) for n in numbers]), 'utf-8')
+                byte_numbers = bytes(str(next_num), 'utf-8')
+                # byte_numbers = bytes(str(next_num) + '|' + ','.join([str(n) for n in numbers]), 'utf-8')
                 self.wfile.write(byte_numbers)
         elif mode == 'start':
+            if int(customer_num) in numbers:
+                numbers.remove(int(customer_num))
             self.wfile.write(bytes('', 'utf-8'))
 
     def info_parser(self, info):
@@ -121,19 +141,17 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
         if mode == 'start':
             polished = '{}：正在为{}号办理'.format(win_num, customer_num)
         elif mode == 'miss':
-            polished = '{}：{}号已过号！'.format(win_num, customer_num)
+            polished = '{}：{}号已过号'.format(win_num, customer_num)
         elif mode == 'finish':
-            polished = '{}：{}号已完成。'.format(win_num, customer_num)
+            polished = '{}：{}号已完成'.format(win_num, customer_num)
         return mode, polished, win_num, customer_num
 
 
 root = tk.Tk()
 root.title('办理进度')
+root.geometry('270x150')
 server = QMS_Server(root)
 
 labels = [server.w1, server.w2, server.w3, server.w4]
-numbers = settings.NUMS
-
-# print(numbers)
-
+numbers = list(range(int(RANGE[0]), int(RANGE[1])))
 root.mainloop()
