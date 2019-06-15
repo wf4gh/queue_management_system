@@ -4,7 +4,8 @@ import sys
 import configparser
 
 config = configparser.ConfigParser()
-config.read('Config.ini', encoding='utf-8')
+config.read('Config.ini', encoding='utf-8-sig')
+# config.read('Config.ini', encoding='utf-8')
 
 HOST = config['CONFIG']['server_host']
 PORT = int(config['CONFIG']['server_port'])
@@ -57,7 +58,7 @@ class QMS_Client:
             sock.sendall(bytes(info + "\n", "utf-8"))
 
             # Receive data from the server and shut down
-            received = str(sock.recv(4096), "utf-8")
+            received = str(sock.recv(1024), "utf-8")
 
             print("Sent:     {}".format(info))
             print("Received: {}".format(received))
