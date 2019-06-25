@@ -17,6 +17,7 @@ CLIENT_HOSTS = config['CONFIG']['client_host'].split(',')
 RANGE = config['CONFIG']['number_range'].split(',')
 numbers = list(range(int(RANGE[0]), int(RANGE[1]) + 1))
 CLIENT_COUNT = int(config['CONFIG']['client_count'])
+WIN_ALPHA = float(config['CONFIG']['server_win_alpha'])
 
 class QMS_Server:
     """Server side, show current working status with info received from client side(s) and allocate customers."""
@@ -96,8 +97,8 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
 
 root = tk.Tk()
 root.title('办理进度')
-root.geometry('500x180')
-root.attributes('-alpha', .75)
+root.geometry('500x200')
+root.attributes('-alpha', WIN_ALPHA)
 # root.overrideredirect(1)
 server = QMS_Server(root, CLIENT_COUNT)
 labels = server.labels
